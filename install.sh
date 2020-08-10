@@ -49,7 +49,7 @@ function mp__xcode_cli__install {
 }
 
 function mp__xcode_cli__ensure_installed {
-  mp__check_command_installed "xcode CLI tools" "xcode_cli__is_installed" "xcode_cli__install"
+  mp__check_command_installed "xcode CLI tools" "mp__xcode_cli__is_installed" "mp__xcode_cli__install"
 }
 
 ##### BREW ####################################################################
