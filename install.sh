@@ -95,6 +95,24 @@ function mp__brew__ensure_package_installed {
   done
 }
 
+# arg 1 - service name
+function mp__brew__service_is_running {
+  brew services list | grep "$1" | grep started 1>/dev/null
+}
+
+# args - service names
+function mp__brew__ensure_service_running {
+  for name in "$@"
+  do
+    if mp__brew__service_is_running $name; then
+      mp__check "brew $name" "is running"
+    else
+      mp__info "brew $name" "is not running. Starting now."
+      brew services start $name
+    fi
+  done
+}
+
 # arg 1 - plugin name
 function mp__brew__cask_package_is_installed {
   brew cask list -1 | grep "$1" 1>/dev/null
@@ -277,8 +295,8 @@ mp__brew__ensure_package_installed elasticsearch \
                                    wget \
                                    yarn
 
-brew services start elasticsearch
-brew services start postgresql
+mp__brew__ensure_service_running elasticsearch \
+                                 postgresql
 
 mp__brew__ensure_cask_package_installed chromedriver \
                                         google-chrome \
