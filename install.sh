@@ -186,7 +186,7 @@ function mp__asdf_plugin_add_elixir {
 
 # arg 1 - asdf plugin name
 function mp__asdf__install_latest_version_globally {
-  latest_version = $(asdf latest "$1" | xargs)
+  latest_version=$(asdf latest "$1" | xargs)
   asdf install "$1" "$latest_version"
   asdf global "$1" "$latest_version"
 }
