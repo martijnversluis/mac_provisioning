@@ -305,4 +305,4 @@ mp__mas__ensure_app_installed 497799835  \  # Xcode
                               926036361  \  # LastPass
                               1483255076 \  # Lockdown
                               506189836  \  # Harvest
-                              1518425043 \  # Boop
+                              1518425043    # Boop
