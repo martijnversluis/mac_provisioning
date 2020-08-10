@@ -55,7 +55,7 @@ function mp__xcode_cli__ensure_installed {
 ##### BREW ####################################################################
 function mp__brew__install {
   mp__xcode_cli__ensure_installed
-  /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
 
   # Install ZSH completions
   if type brew &>/dev/null; then
