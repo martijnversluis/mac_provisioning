@@ -242,7 +242,6 @@ function mp__mas__ensure_app_installed {
 function mp__ruby_install {
   mp__asdf__plugin_ensure_installed "ruby" "mp__asdf_plugin_add_ruby"
   mp__asdf__install_latest_version_globally "ruby"
-  gem install bundler
 }
 
 ##### NODEJS ##################################################################
