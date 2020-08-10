@@ -264,8 +264,7 @@ mp__ruby_install
 mp__nodejs_install
 mp__elixir_install
 
-mp__brew__ensure_package_installed chromedriver \
-                                   elasticsearch \
+mp__brew__ensure_package_installed elasticsearch \
                                    git \
                                    hub \
                                    imagemagick \
@@ -277,7 +276,8 @@ mp__brew__ensure_package_installed chromedriver \
                                    wget \
                                    yarn
 
-mp__brew__ensure_cask_package_installed google-chrome \
+mp__brew__ensure_cask_package_installed chromedriver \
+                                        google-chrome \
                                         firefox \
                                         dropbox \
                                         google-backup-and-sync \
