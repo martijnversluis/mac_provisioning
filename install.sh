@@ -276,6 +276,9 @@ mp__brew__ensure_package_installed elasticsearch \
                                    wget \
                                    yarn
 
+brew services start elasticsearch
+brew services start postgresql
+
 mp__brew__ensure_cask_package_installed chromedriver \
                                         google-chrome \
                                         firefox \
