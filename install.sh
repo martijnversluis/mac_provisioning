@@ -230,7 +230,7 @@ function mp__mas__ensure_app_installed {
   for app_id in "$@"
   do
     if mp__mas__app_is_installed $app_id; then
-      mp__check "brew $app_id" "is installed"
+      mp__check "mas $app_id" "is installed"
     else
       mp__info "mas $app_id" "is not installed. Installing now."
       mas install $app_id
