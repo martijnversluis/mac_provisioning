@@ -299,11 +299,5 @@ mp__brew__ensure_cask_package_installed chromedriver \
                                         whatsapp \
                                         atom \
 
-mp__mas__ensure_app_installed 497799835  \  # Xcode
-                              634159523  \  # MainStage
-                              597790822  \  # SSH Proxy
-                              668208984  \  # GIPHY CAPTURE
-                              926036361  \  # LastPass
-                              1483255076 \  # Lockdown
-                              506189836  \  # Harvest
-                              1518425043    # Boop
+#                             Xcode     MainStage SSH Proxy GIPHY CAPTURE LastPass  Lockdown   Harvest   Boop
+mp__mas__ensure_app_installed 497799835 634159523 597790822 668208984     926036361 1483255076 506189836 1518425043
