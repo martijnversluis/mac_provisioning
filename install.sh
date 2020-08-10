@@ -46,6 +46,7 @@ function mp__xcode_cli__is_installed {
 
 function mp__xcode_cli__install {
   xcode-select --install
+  sudo xcodebuild -license accept
 }
 
 function mp__xcode_cli__ensure_installed {
