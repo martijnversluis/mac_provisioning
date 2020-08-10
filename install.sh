@@ -185,10 +185,22 @@ function mp__asdf_plugin_add_elixir {
 }
 
 # arg 1 - asdf plugin name
+# arg 2 -installation version
+function mp__asdf__is_version_installed {
+  asdf list "$1" | grep "$2" 1>/dev/null
+}
+
+# arg 1 - asdf plugin name
 function mp__asdf__install_latest_version_globally {
   latest_version=$(asdf latest "$1" | xargs)
-  asdf install "$1" "$latest_version"
-  asdf global "$1" "$latest_version"
+
+  if mp__asdf__is_version_installed "$1" "$latest_version"; then
+    mp__check "asdf $1 $latest_version" "is installed"
+  else
+    mp__info "asdf $1 $latest_version" "is not installed. Installing now"
+    asdf install "$1" "$latest_version"
+    asdf global "$1" "$latest_version"
+  fi
 }
 
 ##### MAS (APP STORE APPS) ####################################################
