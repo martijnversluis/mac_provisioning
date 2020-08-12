@@ -323,3 +323,6 @@ mp__mas__ensure_app_installed 497799835 634159523 597790822 668208984     926036
 
 defaults write com.apple.finder AppleShowAllFiles YES
 killall Finder /System/Library/CoreServices/Finder.app
+
+defaults write com.apple.Dock autohide -bool TRUE
+killall Dock
