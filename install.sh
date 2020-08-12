@@ -316,6 +316,7 @@ mp__brew__ensure_cask_package_installed chromedriver \
                                         vlc \
                                         whatsapp \
                                         atom \
+                                        proxifier
 
 #                             Xcode     MainStage SSH Proxy GIPHY CAPTURE LastPass  Lockdown   Harvest   Boop
 mp__mas__ensure_app_installed 497799835 634159523 597790822 668208984     926036361 1483255076 506189836 1518425043
