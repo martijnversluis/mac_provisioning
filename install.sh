@@ -343,8 +343,110 @@ mp__brew__ensure_cask_package_installed chromedriver \
 #                             Xcode     MainStage SSH Proxy GIPHY CAPTURE LastPass  Lockdown   Harvest   Boop
 mp__mas__ensure_app_installed 497799835 634159523 597790822 668208984     926036361 1483255076 506189836 1518425043
 
-defaults write com.apple.finder AppleShowAllFiles YES
-killall Finder /System/Library/CoreServices/Finder.app
+mp__zsh_ensure_installed
 
-defaults write com.apple.Dock autohide -bool TRUE
-killall Dock
+##### MAC PREFERENCES #########################################################
+
+# General
+  # Close any open System Preferences panes, to prevent them from overriding
+  # settings we’re about to change
+  osascript -e 'tell application "System Preferences" to quit'
+
+  # Ask for the administrator password upfront
+  sudo -v
+
+  # Disable Notification Center and remove the menu bar icon
+  launchctl unload -w /System/Library/LaunchAgents/com.apple.notificationcenterui.plist 2> /dev/null
+
+  # Disable the sound effects on boot
+  sudo nvram SystemAudioVolume=" "
+
+  # Show all icons in status bar
+  defaults write com.apple.systemuiserver menuExtras -array \
+  "/System/Library/CoreServices/Menu Extras/AirPort.menu" \
+  "/System/Library/CoreServices/Menu Extras/Bluetooth.menu" \
+  "/System/Library/CoreServices/Menu Extras/Clock.menu" \
+  "/System/Library/CoreServices/Menu Extras/Displays.menu" \
+  "/System/Library/CoreServices/Menu Extras/Volume.menu" \
+  "/System/Library/CoreServices/Menu Extras/TimeMachine.menu" \
+  "/System/Library/CoreServices/Menu Extras/Battery.menu"
+
+# Finder
+  # Show hidden files
+  defaults write com.apple.finder AppleShowAllFiles YES
+
+  # Show icons for hard drives, servers, and removable media on the desktop
+  defaults write com.apple.finder ShowExternalHardDrivesOnDesktop -bool false
+  defaults write com.apple.finder ShowHardDrivesOnDesktop -bool false
+  defaults write com.apple.finder ShowMountedServersOnDesktop -bool false
+  defaults write com.apple.finder ShowRemovableMediaOnDesktop -bool true
+
+  # Finder: show all filename extensions
+  defaults write NSGlobalDomain AppleShowAllExtensions -bool true
+
+  # Finder: show status bar
+  defaults write com.apple.finder ShowStatusBar -bool true
+
+  # Finder: show path bar
+  defaults write com.apple.finder ShowPathbar -bool true
+
+  # Display full POSIX path as Finder window title
+  defaults write com.apple.finder _FXShowPosixPathInTitle -bool true
+
+  # Keep folders on top when sorting by name
+  defaults write com.apple.finder _FXSortFoldersFirst -bool true
+
+  # Use list view in all Finder windows by default
+  # Four-letter codes for the other view modes: `icnv`, `clmv`, `glyv`
+  defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv"
+
+  # Enable AirDrop over Ethernet and on unsupported Macs running Lion
+  defaults write com.apple.NetworkBrowser BrowseAllInterfaces -bool true
+
+  # Show the /Volumes folder
+  sudo chflags nohidden /Volumes
+
+  # Disable the warning when changing a file extension
+  defaults write com.apple.finder FXEnableExtensionChangeWarning -bool false
+
+  killall Finder
+
+# Dock
+  # Autohide the dock
+  defaults write com.apple.Dock autohide -bool TRUE
+  killall Dock
+
+# Menuextra
+  # Show battery percentage in status bar
+  defaults write com.apple.menuextra.battery ShowPercent -string YES
+  # Show full date and time in status bar
+  defaults write com.apple.menuextra.clock DateFormat -string "EEE d MMM  HH:mm"
+
+# Hot corners
+  # Top left screen corner → Mission Control
+  defaults write com.apple.dock wvous-tl-corner -int 2
+  defaults write com.apple.dock wvous-tl-modifier -int 0
+
+# Energy
+  # System Preferences > Desktop & Screen Saver > Start after: Never
+  defaults -currentHost write com.apple.screensaver idleTime -int 0
+
+  # Enable lid wakeup
+  sudo pmset -a lidwake 1
+
+  # Restart automatically on power loss
+  sudo pmset -a autorestart 1
+
+  # Restart automatically if the computer freezes
+  sudo systemsetup -setrestartfreeze on
+
+# Input
+  # Set a blazingly fast keyboard repeat rate
+  defaults write NSGlobalDomain KeyRepeat -int 1
+  defaults write NSGlobalDomain InitialKeyRepeat -int 10
+
+  # Use scroll gesture with the Ctrl (^) modifier key to zoom
+  defaults write com.apple.universalaccess closeViewScrollWheelToggle -bool true
+  defaults write com.apple.universalaccess HIDScrollZoomModifierMask -int 262144
+  # Follow the keyboard focus while zoomed in
+  defaults write com.apple.universalaccess closeViewZoomFollowsFocus -bool true
