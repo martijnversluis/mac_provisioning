@@ -18,7 +18,7 @@ function mp__log {
 # arg 1 - module name
 # arg 2 - log text
 function mp__info {
-  mp__log "ℹ️" "$1" "$2"
+  mp__log "ℹ️ " "$1" "$2"
 }
 
 # arg 1 - module name
@@ -172,7 +172,7 @@ function mp__asdf__plugin_ensure_installed {
   if $(mp__asdf_plugin_is_installed "$1"); then
     mp__check "asdf $1" "is installed"
   else
-    mp__info "asdf $2" "is not installed. Installing now."
+    mp__info "asdf $1" "is not installed. Installing now."
     $2
   fi
 }
