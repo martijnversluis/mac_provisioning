@@ -277,6 +277,26 @@ function mp__elixir_install {
   mp__asdf__install_latest_version_globally "elixir"
 }
 
+##### ZSH #####################################################################
+function mp__zsh_is_installed {
+  test -d ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}
+}
+
+function mp__zsh_install {
+  sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
+  git clone https://github.com/romkatv/powerlevel10k.git $ZSH_CUSTOM/themes/powerlevel10k
+  p10k configure
+}
+
+function mp__zsh_ensure_installed {
+  if mp__zsh_is_installed; then
+    mp__check "ZSH" "is installed"
+  else
+    mp__info "ZSH" "is not installed. Installing now."
+    mp__zsh_install
+  fi
+}
+
 ##### PROVISIONING ############################################################
 
 mp__ruby_install
