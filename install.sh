@@ -303,7 +303,9 @@ mp__ruby_install
 mp__nodejs_install
 mp__elixir_install
 
-mp__brew__ensure_package_installed elasticsearch \
+mp__brew__ensure_cask_package_installed java
+
+mp__brew__ensure_package_installed elasticsearch@6 \
                                    git \
                                    hub \
                                    imagemagick \
@@ -315,7 +317,7 @@ mp__brew__ensure_package_installed elasticsearch \
                                    wget \
                                    yarn
 
-mp__brew__ensure_service_running elasticsearch \
+mp__brew__ensure_service_running elasticsearch@6 \
                                  postgresql
 
 mp__brew__ensure_cask_package_installed chromedriver \
