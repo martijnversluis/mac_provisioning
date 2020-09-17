@@ -318,7 +318,8 @@ mp__brew__ensure_package_installed elasticsearch@6 \
                                    yarn
 
 mp__brew__ensure_service_running elasticsearch@6 \
-                                 postgresql
+                                 postgresql \
+                                 redis
 
 mp__brew__ensure_cask_package_installed chromedriver \
                                         google-chrome \
