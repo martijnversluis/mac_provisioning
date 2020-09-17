@@ -307,7 +307,7 @@ mp__brew__ensure_cask_package_installed java
 
 mp__brew__ensure_package_installed elasticsearch@6 \
                                    git \
-                                   hub \
+                                   gh \
                                    imagemagick \
                                    openssl \
                                    postgresql \
