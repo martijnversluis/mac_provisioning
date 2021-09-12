@@ -34,7 +34,7 @@ function mp__check_command_installed {
   if $($2); then
     mp__check "$1" "is installed"
   else
-    mp__info "$2" "is not installed. Installing now."
+    mp__info "$1" "is not installed. Installing now."
     $3
   fi
 }
