@@ -95,6 +95,20 @@ function mp__brew__ensure_package_installed {
   done
 }
 
+# arg 1 - package name
+# arg 2 - tap name
+function mp__brew__ensure_package_installed_from_tap {
+  mp__brew__ensure_installed
+
+  if mp__brew__package_is_installed $1; then
+    mp__check "brew $1" "is installed"
+  else
+    mp__info "brew $1" "is not installed. Installing now."
+    brew tap "$2"
+    brew install "$1"
+  fi
+}
+
 # arg 1 - service name
 function mp__brew__service_is_running {
   brew services list | grep "$1" | grep started 1>/dev/null
@@ -146,9 +160,9 @@ function mp__asdf_install {
                                      libtool \
                                      unixodbc \
                                      unzip \
-                                     curl \
-                                     asdf
-  echo -e "\n. $(brew --prefix asdf)/asdf.sh" >> ~/.zshrc
+                                     curl
+
+  git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.8.1
 }
 
 function mp__asdf_is_installed {
@@ -161,7 +175,7 @@ function mp__asdf_ensure_installed {
 
 # arg 1 - plugin name
 function mp__asdf_plugin_is_installed {
-  asdf plugin-list | grep "$1" 1>/dev/null
+  asdf plugin list | grep "$1" 1>/dev/null
 }
 
 # arg 1 - asdf plugin name to check
@@ -183,24 +197,24 @@ function mp__asdf_plugin_add_ruby {
                                      openssl \
                                      libyaml \
                                      libffi
-  asdf plugin-add ruby https://github.com/asdf-vm/asdf-ruby.git
+  asdf plugin add ruby https://github.com/asdf-vm/asdf-ruby.git
 }
 
 function mp__asdf_plugin_add_nodejs {
   mp__asdf_ensure_installed
   mp__brew__ensure_package_installed coreutils gpg
-  asdf plugin-add nodejs https://github.com/asdf-vm/asdf-nodejs.git
+  asdf plugin add nodejs https://github.com/asdf-vm/asdf-nodejs.git
   bash ~/.asdf/plugins/nodejs/bin/import-release-team-keyring
 }
 
 function mp__asdf_plugin_add_erlang {
   mp__brew__ensure_package_installed autoconf wxmac
-  asdf plugin-add erlang https://github.com/asdf-vm/asdf-erlang.git
+  asdf plugin add erlang https://github.com/asdf-vm/asdf-erlang.git
 }
 
 function mp__asdf_plugin_add_elixir {
   mp__brew__ensure_package_installed unzip
-  asdf plugin-add elixir https://github.com/asdf-vm/asdf-elixir.git
+  asdf plugin add elixir https://github.com/asdf-vm/asdf-elixir.git
 }
 
 # arg 1 - asdf plugin name
@@ -242,21 +256,6 @@ function mp__mas__app_is_installed {
   mas list | grep "$1 " 1>/dev/null
 }
 
-# args - app IDs
-function mp__mas__ensure_app_installed {
-  mp__mas_ensure_installed
-
-  for app_id in "$@"
-  do
-    if mp__mas__app_is_installed $app_id; then
-      mp__check "mas $app_id" "is installed"
-    else
-      mp__info "mas $app_id" "is not installed. Installing now."
-      mas install $app_id
-    fi
-  done
-}
-
 ##### RUBY ####################################################################
 function mp__ruby_install {
   mp__asdf__plugin_ensure_installed "ruby" "mp__asdf_plugin_add_ruby"
@@ -275,6 +274,42 @@ function mp__elixir_install {
   mp__asdf__install_latest_version_globally "erlang"
   mp__asdf__plugin_ensure_installed "elixir" "mp__asdf_plugin_add_elixir"
   mp__asdf__install_latest_version_globally "elixir"
+}
+
+##### Brew bundle install #####################################################
+function mp__brew_bundle_install {
+  mp__brew__ensure_installed
+  brew bundle --file ~/Brewfile
+}
+
+##### Downloading and installing custom app ###################################
+# arg 1 - app name
+function mp__app_is_installed {
+  test -f "/Applications/$1.app"
+}
+
+# arg 1 - page URL
+# arg 2 - XPath to select download URL
+function mp__download_and_install_pkg {
+  mp__brew__ensure_package_installed wget
+  download_url=$(./httpquery "$1" "$2")
+  download_path="~/Downloads/$(basename "$download_url")"
+  wget -O "$download_path" "$download_url"
+  sudo hdiutil attach "$download_path"
+#  sudo installer -package /Volumes/<image>/<image>.pkg -target /
+#  sudo hdiutil detach /Volumes/<image>
+}
+
+# arg 1 - app name
+# arg 2 - page URL
+# arg 3 - XPath to select download URL
+function mp__ensure_pkg_installed {
+  if mp__app_is_installed "$1"; then
+    mp__check "$1" "is installed"
+  else
+    mp__info "$1" "is not installed. Installing now."
+    mp__download_and_install_pkg "$2" "$3"
+  fi
 }
 
 ##### ZSH #####################################################################
@@ -303,48 +338,12 @@ mp__ruby_install
 mp__nodejs_install
 mp__elixir_install
 
-mp__brew__ensure_cask_package_installed java
-
-mp__brew__ensure_package_installed elasticsearch@6 \
-                                   git \
-                                   gh \
-                                   imagemagick \
-                                   openssl \
-                                   postgresql \
-                                   redis \
-                                   sqlite \
-                                   telnet \
-                                   wget \
-                                   yarn
-
-mp__brew__ensure_service_running elasticsearch@6 \
-                                 postgresql \
-                                 redis
-
-mp__brew__ensure_cask_package_installed chromedriver \
-                                        google-chrome \
-                                        firefox \
-                                        dropbox \
-                                        google-backup-and-sync \
-                                        docker \
-                                        iterm2 \
-                                        macdown \
-                                        postman \
-                                        spectacle \
-                                        alfred \
-                                        brave-browser \
-                                        rubymine \
-                                        slack \
-                                        virtualbox \
-                                        vlc \
-                                        whatsapp \
-                                        atom \
-                                        proxifier
-
-#                             Xcode     MainStage SSH Proxy GIPHY CAPTURE LastPass  Lockdown   Harvest   Boop
-mp__mas__ensure_app_installed 497799835 634159523 597790822 668208984     926036361 1483255076 506189836 1518425043
-
+mp__brew_bundle_install
 mp__zsh_ensure_installed
+
+mp__ensure_pkg_installed "Dante Virtual Soundcard.app" \
+                         "https://my.audinate.com/content/dante-virtual-soundcard-v4123-macos" \
+                         "//a[starts-with(@type, 'application/x-apple-diskimage')]/@href"
 
 ##### MAC PREFERENCES #########################################################
 
