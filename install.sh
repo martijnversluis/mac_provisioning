@@ -57,6 +57,8 @@ function mp__xcode_cli__ensure_installed {
 function mp__brew__install {
   mp__xcode_cli__ensure_installed
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+  echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
+  eval "$(/opt/homebrew/bin/brew shellenv)"
 
   # Install ZSH completions
   if type brew &>/dev/null; then
