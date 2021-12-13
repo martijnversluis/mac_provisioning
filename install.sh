@@ -206,7 +206,7 @@ function mp__asdf_plugin_add_ruby {
 
 function mp__asdf_plugin_add_nodejs {
   mp__asdf_ensure_installed
-  mp__brew__ensure_package_installed coreutils gpg
+  mp__brew__ensure_package_installed coreutils gpg gnupg gnupg2
   asdf plugin add nodejs https://github.com/asdf-vm/asdf-nodejs.git
   bash ~/.asdf/plugins/nodejs/bin/import-release-team-keyring
 }
