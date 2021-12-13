@@ -165,6 +165,8 @@ function mp__asdf_install {
                                      curl
 
   git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.8.1
+  echo ". $HOME/.asdf/asdf.sh" >> ~/.zshrc
+  . $HOME/.asdf/asdf.sh
 }
 
 function mp__asdf_is_installed {
