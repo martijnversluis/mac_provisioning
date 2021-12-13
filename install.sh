@@ -283,6 +283,7 @@ function mp__elixir_install {
 ##### Brew bundle install #####################################################
 function mp__brew_bundle_install {
   mp__brew__ensure_installed
+  curl https://raw.githubusercontent.com/martijnversluis/mac_provisioning/master/Brewfile --output ~/Brewfile
   brew bundle --file ~/Brewfile
 }
 
