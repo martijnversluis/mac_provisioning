@@ -314,7 +314,7 @@ function mp__brew_bundle_install {
 function mp__app_is_installed {
   app_name="$1"
 
-  test -f "/Applications/$app_name.app"
+  test -d "/Applications/$app_name.app"
 }
 
 function mp__download_and_install_pkg {
@@ -378,15 +378,12 @@ mp__ruby_install
 mp__nodejs_install
 mp__elixir_install
 
-mp__brew_bundle_install
-mp__zsh_ensure_installed
-
-mp__ensure_pkg_installed "Dante Virtual Soundcard.app" \
+mp__ensure_pkg_installed "Dante Virtual Soundcard" \
                          "https://my.audinate.com/content/dante-virtual-soundcard-v4123-macos" \
                          "//a[starts-with(@type, 'application/x-apple-diskimage')]/@href" \
                          "DanteVirtualSoundcard.pkg"
 
-mp__ensure_pkg_installed "Splashtop XDisplay.app" \
+mp__ensure_pkg_installed "Splashtop XDisplay" \
                          "https://www.splashtop.com/en-gb/wiredxdisplay" \
                          "//a[ends-with(@href, '.dmg')]/@href" \
                          "Splashtop XDisplay.pkg"
