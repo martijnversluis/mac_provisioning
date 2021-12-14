@@ -3,45 +3,50 @@ set -eo pipefail
 
 ##### GENERIC #################################################################
 
-# arg 1 - command name
 function mp__command_is_installed {
-  type "$1" >/dev/null 2>&1
+  command_name="$1"
+
+  type "$command_name" >/dev/null 2>&1
 }
 
-# arg 1 - emoji
-# arg 2 - module name
-# arg 3 - log text
 function mp__log {
-  echo "$1 [$2] $3"
+  emoji="$1"
+  module_name="$2"
+  log_text="$3"
+
+  echo "$emoji [$module_name] $log_text"
 }
 
-# arg 1 - module name
-# arg 2 - log text
 function mp__info {
-  mp__log "ℹ️ " "$1" "$2"
+  module_name="$1"
+  log_text="$2"
+
+  mp__log "ℹ️ " "$module_name" "$log_text"
 }
 
-# arg 1 - module name
-# arg 2 - log text
 function mp__check {
-  mp__log "✅" "$1" "$2"
+  module_name="$1"
+  log_text="$2"
+
+  mp__log "✅" "$module_name" "$log_text"
 }
 
-# arg 1 - module name
-# arg 2 - function name to check installation status
-# arg 3 - function name to execute installation
 function mp__check_command_installed {
-  if $($2); then
-    mp__check "$1" "is installed"
+  module_name="$1"
+  installation_check_function_name="$2"
+  installation_execution_function_name="$3"
+
+  if $($installation_check_function_name); then
+    mp__check "$module_name" "is installed"
   else
-    mp__info "$1" "is not installed. Installing now."
-    $3
+    mp__info "$module_name" "is not installed. Installing now."
+    $installation_execution_function_name
   fi
 }
 
-# arg 1 - file name
 function mp__download_auxiliary_file {
   file_name="$1"
+
   curl "https://raw.githubusercontent.com/martijnversluis/mac_provisioning/master/$file_name" \
        --output "$HOME/$file_name"
 }
@@ -84,16 +89,18 @@ function mp__brew__ensure_installed {
   mp__check_command_installed "brew" "mp__brew__is_installed" "mp__brew__install"
 }
 
-# arg 1 - plugin name
 function mp__brew__package_is_installed {
-  brew list -1 | grep "$1" 1>/dev/null
+  plugin_name="$1"
+
+  brew list -1 | grep "$plugin_name" 1>/dev/null
 }
 
-# args - package names
 function mp__brew__ensure_package_installed {
+  plugin_names="$@"
+
   mp__brew__ensure_installed
 
-  for name in "$@"
+  for name in $plugin_names
   do
     if mp__brew__package_is_installed $name; then
       mp__check "brew $name" "is installed"
@@ -104,28 +111,31 @@ function mp__brew__ensure_package_installed {
   done
 }
 
-# arg 1 - package name
-# arg 2 - tap name
 function mp__brew__ensure_package_installed_from_tap {
+  package_name="$1"
+  tap_name="$2"
+
   mp__brew__ensure_installed
 
-  if mp__brew__package_is_installed $1; then
-    mp__check "brew $1" "is installed"
+  if mp__brew__package_is_installed $package_name; then
+    mp__check "brew $package_name" "is installed"
   else
-    mp__info "brew $1" "is not installed. Installing now."
-    brew tap "$2"
-    brew install "$1"
+    mp__info "brew $package_name" "is not installed. Installing now."
+    brew tap "$tap_name"
+    brew install "$package_name"
   fi
 }
 
-# arg 1 - service name
 function mp__brew__service_is_running {
-  brew services list | grep "$1" | grep started 1>/dev/null
+  service_name="$1"
+
+  brew services list | grep "$service_name" | grep started 1>/dev/null
 }
 
-# args - service names
 function mp__brew__ensure_service_running {
-  for name in "$@"
+  service_names="$@"
+
+  for name in $service_names
   do
     if mp__brew__service_is_running $name; then
       mp__check "brew $name" "is running"
@@ -136,16 +146,18 @@ function mp__brew__ensure_service_running {
   done
 }
 
-# arg 1 - plugin name
 function mp__brew__cask_package_is_installed {
-  brew cask list -1 | grep "$1" 1>/dev/null
+  package_name="$1"
+
+  brew cask list -1 | grep "$package_name" 1>/dev/null
 }
 
-# args - package names
 function mp__brew__ensure_cask_package_installed {
+  package_names="$@"
+
   mp__brew__ensure_installed
 
-  for name in "$@"
+  for name in $package_names
   do
     if mp__brew__cask_package_is_installed $name; then
       mp__check "brew cask $name" "is installed"
@@ -189,16 +201,17 @@ function mp__asdf_plugin_is_installed {
   asdf plugin list | grep "$1" 1>/dev/null
 }
 
-# arg 1 - asdf plugin name to check
-# arg 2 - function name to install plugin
 function mp__asdf__plugin_ensure_installed {
+  plugin_name="$1"
+  installation_function_name="$2"
+
   mp__asdf_ensure_installed
 
-  if $(mp__asdf_plugin_is_installed "$1"); then
-    mp__check "asdf $1" "is installed"
+  if $(mp__asdf_plugin_is_installed "$plugin_name"); then
+    mp__check "asdf $plugin_name" "is installed"
   else
-    mp__info "asdf $1" "is not installed. Installing now."
-    $2
+    mp__info "asdf $plugin_name" "is not installed. Installing now."
+    $installation_function_name
   fi
 }
 
@@ -228,22 +241,24 @@ function mp__asdf_plugin_add_elixir {
   asdf plugin add elixir https://github.com/asdf-vm/asdf-elixir.git
 }
 
-# arg 1 - asdf plugin name
-# arg 2 -installation version
 function mp__asdf__is_version_installed {
-  asdf list "$1" | grep "$2" 1>/dev/null
+  plugin_name="$1"
+  version="$2"
+
+  asdf list "$plugin_name" | grep "$version" 1>/dev/null
 }
 
-# arg 1 - asdf plugin name
 function mp__asdf__install_latest_version_globally {
-  latest_version=$(asdf latest "$1" | xargs)
+  plugin_name="$1"
 
-  if mp__asdf__is_version_installed "$1" "$latest_version"; then
-    mp__check "asdf $1 $latest_version" "is installed"
+  latest_version=$(asdf latest "$plugin_name" | xargs)
+
+  if mp__asdf__is_version_installed "$plugin_name" "$latest_version"; then
+    mp__check "asdf $plugin_name $latest_version" "is installed"
   else
-    mp__info "asdf $1 $latest_version" "is not installed. Installing now"
-    asdf install "$1" "$latest_version"
-    asdf global "$1" "$latest_version"
+    mp__info "asdf $plugin_name $latest_version" "is not installed. Installing now"
+    asdf install "$plugin_name" "$latest_version"
+    asdf global "$plugin_name" "$latest_version"
   fi
 }
 
@@ -262,9 +277,10 @@ function mp__mas_ensure_installed {
   mp__check_command_installed "mas" "mp__mas_is_installed" "mp__mas_install"
 }
 
-# arg 1 - app ID
 function mp__mas__app_is_installed {
-  mas list | grep "$1 " 1>/dev/null
+  app_id="$1"
+
+  mas list | grep "$app_id " 1>/dev/null
 }
 
 ##### RUBY ####################################################################
@@ -295,14 +311,12 @@ function mp__brew_bundle_install {
 }
 
 ##### Downloading and installing custom app ###################################
-# arg 1 - app name
 function mp__app_is_installed {
-  test -f "/Applications/$1.app"
+  app_name="$1"
+
+  test -f "/Applications/$app_name.app"
 }
 
-# arg 1 - page URL
-# arg 2 - XPath to select download URL
-# arg 3 - pkg file name
 function mp__download_and_install_pkg {
   app_name="$1"
   page_url="$2"
@@ -324,16 +338,17 @@ function mp__download_and_install_pkg {
   sudo hdiutil detach "/Volumes/$volume_name"
 }
 
-# arg 1 - app name
-# arg 2 - page URL
-# arg 3 - XPath to select download URL
-# arg 4 - pkg file name
 function mp__ensure_pkg_installed {
-  if mp__app_is_installed "$1"; then
-    mp__check "$1" "is installed"
+  app_name="$1"
+  page_url="$2"
+  download_url_selection_xpath="$3"
+  pkg_file_name="$4"
+
+  if mp__app_is_installed "$app_name"; then
+    mp__check "$app_name" "is installed"
   else
-    mp__info "$1" "is not installed. Installing now."
-    mp__download_and_install_pkg "$1" "$2" "$3" "$4"
+    mp__info "$app_name" "is not installed. Installing now."
+    mp__download_and_install_pkg "$app_name" "$page_url" "$download_url_selection_xpath" "$pkg_file_name"
   fi
 }
 
