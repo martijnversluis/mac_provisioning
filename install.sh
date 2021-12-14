@@ -386,6 +386,11 @@ mp__ensure_pkg_installed "Dante Virtual Soundcard.app" \
                          "//a[starts-with(@type, 'application/x-apple-diskimage')]/@href" \
                          "DanteVirtualSoundcard.pkg"
 
+mp__ensure_pkg_installed "Splashtop XDisplay.app" \
+                         "https://www.splashtop.com/en-gb/wiredxdisplay" \
+                         "//a[ends-with(@href, '.dmg')]/@href" \
+                         "Splashtop XDisplay.pkg"
+
 ##### MAC PREFERENCES #########################################################
 
 # General
