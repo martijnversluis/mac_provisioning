@@ -39,6 +39,13 @@ function mp__check_command_installed {
   fi
 }
 
+# arg 1 - file name
+function mp__download_auxiliary_file {
+  file_name="$1"
+  curl "https://raw.githubusercontent.com/martijnversluis/mac_provisioning/master/$file_name" \
+       --output "$HOME/$file_name"
+}
+
 ##### X-CODE ##################################################################
 function mp__xcode_cli__is_installed {
   xcode-select -p 1>/dev/null
@@ -283,7 +290,7 @@ function mp__elixir_install {
 ##### Brew bundle install #####################################################
 function mp__brew_bundle_install {
   mp__brew__ensure_installed
-  curl https://raw.githubusercontent.com/martijnversluis/mac_provisioning/master/Brewfile --output ~/Brewfile
+  mp__download_auxiliary_file Brewfile
   brew bundle --file ~/Brewfile
 }
 
@@ -295,25 +302,38 @@ function mp__app_is_installed {
 
 # arg 1 - page URL
 # arg 2 - XPath to select download URL
+# arg 3 - pkg file name
 function mp__download_and_install_pkg {
+  app_name="$1"
+  page_url="$2"
+  xpath="$3"
+  package_file_name="$4"
+
   mp__brew__ensure_package_installed wget
-  download_url=$(./httpquery "$1" "$2")
-  download_path="~/Downloads/$(basename "$download_url")"
+  mp__download_auxiliary_file httpquery
+  chmod +x httpquery
+  download_url=$(./httpquery "$page_url" "$xpath")
+  download_filename=$(basename "$download_url")
+  volume_name=$(basename "$app_name" ".app")
+  download_path="~/Downloads/$download_filename"
+  mkdir -p $(dirname "$download_path")
   wget -O "$download_path" "$download_url"
+  echo "Downloading $download_url to $download_path"
   sudo hdiutil attach "$download_path"
-#  sudo installer -package /Volumes/<image>/<image>.pkg -target /
-#  sudo hdiutil detach /Volumes/<image>
+  sudo installer -package "/Volumes/$volume_name/$package_file_name" -target /
+  sudo hdiutil detach "/Volumes/$volume_name"
 }
 
 # arg 1 - app name
 # arg 2 - page URL
 # arg 3 - XPath to select download URL
+# arg 4 - pkg file name
 function mp__ensure_pkg_installed {
   if mp__app_is_installed "$1"; then
     mp__check "$1" "is installed"
   else
     mp__info "$1" "is not installed. Installing now."
-    mp__download_and_install_pkg "$2" "$3"
+    mp__download_and_install_pkg "$1" "$2" "$3" "$4"
   fi
 }
 
@@ -348,7 +368,8 @@ mp__zsh_ensure_installed
 
 mp__ensure_pkg_installed "Dante Virtual Soundcard.app" \
                          "https://my.audinate.com/content/dante-virtual-soundcard-v4123-macos" \
-                         "//a[starts-with(@type, 'application/x-apple-diskimage')]/@href"
+                         "//a[starts-with(@type, 'application/x-apple-diskimage')]/@href" \
+                         "DanteVirtualSoundcard.pkg"
 
 ##### MAC PREFERENCES #########################################################
 

@@ -1,0 +1,24 @@
+#!/usr/bin/env ruby
+
+require 'bundler/inline'
+
+gemfile do
+  source 'https://rubygems.org'
+  gem 'nokogiri'
+end
+
+require 'net/http'
+require 'uri'
+
+url = ARGV[0]
+selector = ARGV[1]
+
+uri = URI(url)
+response = Net::HTTP.get_response(uri)
+
+if response.is_a?(Net::HTTPSuccess)
+  document = Nokogiri::HTML.parse(response.body)
+  puts document.xpath(selector)
+else
+  raise "Loading #{url} failed"
+end
