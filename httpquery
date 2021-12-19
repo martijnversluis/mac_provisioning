@@ -18,7 +18,7 @@ response = Net::HTTP.get_response(uri)
 
 if response.is_a?(Net::HTTPSuccess)
   document = Nokogiri::HTML.parse(response.body)
-  puts document.xpath(selector)
+  puts document.xpath(selector).first
 else
   raise "Loading #{url} failed"
 end

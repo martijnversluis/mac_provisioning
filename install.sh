@@ -1,6 +1,9 @@
 #!/bin/bash
 set -eo pipefail
 
+# Ask for the administrator password upfront
+sudo -v
+
 ##### GENERIC #################################################################
 
 function mp__command_is_installed {
@@ -49,6 +52,14 @@ function mp__download_auxiliary_file {
 
   curl "https://raw.githubusercontent.com/martijnversluis/mac_provisioning/master/$file_name" \
        --output "$HOME/$file_name"
+}
+
+function mp__ensure_auxiliary_file {
+  file_name="$1"
+
+  if [[ ! -f  "$file_name" ]]; then
+    mp__download_auxiliary_file "$file_name"
+  fi
 }
 
 ##### X-CODE ##################################################################
@@ -317,49 +328,88 @@ function mp__app_is_installed {
   test -d "/Applications/$app_name.app"
 }
 
-function mp__download_and_install_pkg {
+function mp__download_and_install_app {
   app_name="$1"
   page_url="$2"
-  xpath="$3"
-  package_file_name="$4"
-
-  mp__brew__ensure_package_installed wget
-  mp__download_auxiliary_file httpquery
-  chmod +x httpquery
-  download_url=$(./httpquery "$page_url" "$xpath")
-  download_filename=$(basename "$download_url")
-  volume_name=$(basename "$app_name" ".app")
-  download_path="~/Downloads/$download_filename"
-  mkdir -p $(dirname "$download_path")
-  wget -O "$download_path" "$download_url"
-  echo "Downloading $download_url to $download_path"
-  sudo hdiutil attach "$download_path"
-  sudo installer -package "/Volumes/$volume_name/$package_file_name" -target /
-  sudo hdiutil detach "/Volumes/$volume_name"
-}
-
-function mp__ensure_pkg_installed {
-  app_name="$1"
-  page_url="$2"
-  download_url_selection_xpath="$3"
-  pkg_file_name="$4"
+  package_file_name="$3"
+  xpath="$4"
 
   if mp__app_is_installed "$app_name"; then
     mp__check "$app_name" "is installed"
   else
     mp__info "$app_name" "is not installed. Installing now."
-    mp__download_and_install_pkg "$app_name" "$page_url" "$download_url_selection_xpath" "$pkg_file_name"
+
+    if [[ -n "$xpath" ]]; then
+      download_url=$(mp__http_query "$page_url" "$xpath")
+      mp__info "$app_name" "Queried $page_url for $xpath, found $download_url"
+    else
+      download_url="$page_url"
+    fi
+
+    mp__info "$app_name" "Fetching redirect filename for $download_url"
+    original_file_name="$(curl "$download_url" -I | tr -d '\r' | sed -En 's/^location: (.*)/\1/p' || true)"
+    reference_file_name="${original_file_name:-"$download_url"}"
+    extension="${reference_file_name: -3}"
+    mp__info "$app_name" "Redirect URL for $download_url is ${original_file_name:-"<Not present>"}"
+    mp__info "$app_name" "Effective extension: $extension"
+
+    download_filename="mac_provisioning-$app_name-$(date +%s)"
+    download_path="$HOME/Downloads/$download_filename.$extension"
+    volume_name=$(dirname "$package_file_name")
+
+    if [[ -n "$package_file_name" ]]; then
+      volume_name=$(dirname "$package_file_name")
+    else
+      volume_name="$app_name"
+    fi
+
+    mkdir -p "$(dirname "$download_path")"
+    mp__info "$app_name" "Downloading $download_url to $download_path"
+    curl -L "$download_url" --output "$download_path"
+
+    if [[ "$extension" == "dmg" ]]; then
+      mp__info "$app_name" "Found a dmg. Mounting $download_path"
+      sudo hdiutil attach "$download_path"
+
+      if [[ "$package_file_name" == *.pkg ]]; then
+        mp__info "$app_name" "Installing /Volumes/$package_file_name"
+        sudo installer -package "/Volumes/$package_file_name" -target /
+      else
+        mp__info "$app_name" "Copying /Volumes/$package_file_name to /Applications"
+        sudo cp -R "/Volumes/$volume_name/$app_name.app" "/Applications"
+      fi
+
+      mp__info "$app_name" "Detaching /Volumes/$volume_name"
+      sudo hdiutil detach "/Volumes/$volume_name"
+    elif [[ "$extension" == "pkg" ]]; then
+      mp__info "$app_name" "Found a pkg. Installing $download_path"
+      sudo installer -package "$download_path" -target /
+    else
+      mp__info "$app_name" "Don't know how to install ${original_file_name:-"$download_url"}"
+    fi
+
+    mp__info "$app_name" "Cleaning up $download_path"
+    rm "$download_path"
   fi
+}
+
+function mp__http_query {
+  page_url="$1"
+  xpath="$2"
+
+  mp__ensure_auxiliary_file "httpquery"
+  chmod +x httpquery
+  ./httpquery "$page_url" "$xpath"
 }
 
 ##### ZSH #####################################################################
 function mp__zsh_is_installed {
-  test -d ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}
+  test -d "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
 }
 
 function mp__zsh_install {
   sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-  git clone https://github.com/romkatv/powerlevel10k.git $ZSH_CUSTOM/themes/powerlevel10k
+  git clone "https://github.com/romkatv/powerlevel10k.git" "$ZSH_CUSTOM/themes/powerlevel10k"
   p10k configure
 }
 
@@ -378,15 +428,39 @@ mp__ruby_install
 mp__nodejs_install
 mp__elixir_install
 
-mp__ensure_pkg_installed "Dante Virtual Soundcard" \
-                         "https://my.audinate.com/content/dante-virtual-soundcard-v4123-macos" \
-                         "//a[starts-with(@type, 'application/x-apple-diskimage')]/@href" \
-                         "DanteVirtualSoundcard.pkg"
+mp__download_and_install_app "Dante Virtual Soundcard" \
+                             "https://my.audinate.com/content/dante-virtual-soundcard-v4123-macos" \
+                             "Dante Virtual Soundcard/DanteVirtualSoundcard.pkg" \
+                             "//a[starts-with(@type, 'application/x-apple-diskimage')]/@href"
 
-mp__ensure_pkg_installed "Splashtop XDisplay" \
-                         "https://www.splashtop.com/en-gb/wiredxdisplay" \
-                         "//a[ends-with(@href, '.dmg')]/@href" \
-                         "Splashtop XDisplay.pkg"
+mp__download_and_install_app "Splashtop XDisplay" \
+                             "https://www.splashtop.com/en-gb/wiredxdisplay" \
+                             "SplashtopXDisplay/Splashtop XDisplay.pkg" \
+                             "//a[contains(@href, '.dmg')]/@href"
+
+mp__download_and_install_app "dScript" \
+                             "https://www.robot-electronics.co.uk/dscript.html" \
+                             "dScript/dScript.app" \
+                             "//a[contains(@href, '.dmg')]/@href"
+
+mp__download_and_install_app "Hue Sync" \
+                             "https://firmware.meethue.com/v1/download?deviceTypeId=HueSyncMac"
+
+mp__download_and_install_app "Teamflow" \
+                             "https://huddle-production.sfo2.digitaloceanspaces.com/desktop-apps/Teamflow-latest-arm64.dmg" \
+                             "Teamflow 34.0.0-arm64/Teamflow.app"
+
+if mp__app_is_installed "OB-Xd"; then
+  mp__check "OB-Xd" "is installed"
+else
+  mp__info "OB-Xd" "is not installed. Installing now."
+  mp__brew__ensure_package_installed "unzip"
+  zip_path="$HOME/Downloads/obxd-$(date +%s).zip"
+  extraction_path="$HOME/Downloads/Obxd25Mac"
+  curl -L "https://www.discodsp.com/download/?id=2" --output "$zip_path"
+  unzip "$zip_path" -d "$extraction_path"
+  sudo installer -package "$extraction_path/OB-Xd 2.5.pkg" -target /
+fi
 
 ##### MAC PREFERENCES #########################################################
 
@@ -394,9 +468,6 @@ mp__ensure_pkg_installed "Splashtop XDisplay" \
   # Close any open System Preferences panes, to prevent them from overriding
   # settings we’re about to change
   osascript -e 'tell application "System Preferences" to quit'
-
-  # Ask for the administrator password upfront
-  sudo -v
 
   # Disable Notification Center and remove the menu bar icon
   launchctl unload -w /System/Library/LaunchAgents/com.apple.notificationcenterui.plist 2> /dev/null
