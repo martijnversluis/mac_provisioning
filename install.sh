@@ -460,6 +460,23 @@ else
   curl -L "https://www.discodsp.com/download/?id=2" --output "$zip_path"
   unzip "$zip_path" -d "$extraction_path"
   sudo installer -package "$extraction_path/OB-Xd 2.5.pkg" -target /
+  rm "$zip_path"
+  rm -rf "$extraction_path"
+fi
+
+if mp__app_is_installed "Logitech options"; then
+  mp__check "Logitech options" "is installed"
+else
+  mp__info "Logitech options" "is not installed. Installing now."
+  mp__brew__ensure_package_installed "unzip"
+  zip_path="$HOME/Downloads/logitech_options-$(date +%s).zip"
+  extraction_path="$HOME/Downloads/logitech_options"
+  curl -L "https://download01.logi.com/web/ftp/pub/techsupport/options/options_installer.zip" --output "$zip_path"
+  unzip "$zip_path" -d "$extraction_path"
+  app_path=$(ls "$extraction_path")
+  mp__info "Logitech options" "Launching $extraction_path/$app_path"
+  open "$extraction_path/$app_path"
+  rm "$zip_path"
 fi
 
 ##### MAC PREFERENCES #########################################################
