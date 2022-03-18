@@ -429,9 +429,9 @@ mp__nodejs_install
 mp__elixir_install
 
 mp__download_and_install_app "Dante Virtual Soundcard" \
-                             "https://my.audinate.com/content/dante-virtual-soundcard-v4123-macos" \
+                             "https://my.audinate.com/support/downloads/dante-virtual-soundcard" \
                              "Dante Virtual Soundcard/DanteVirtualSoundcard.pkg" \
-                             "//a[starts-with(@type, 'application/x-apple-diskimage')]/@href"
+                             "//a[contains(@href, 'macos-apple-silicon.dmg')]/@href"
 
 mp__download_and_install_app "Splashtop XDisplay" \
                              "https://www.splashtop.com/en-gb/wiredxdisplay" \
